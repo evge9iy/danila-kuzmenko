@@ -12,7 +12,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600&family=Arimo:wght@400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <script>
@@ -26,7 +26,8 @@
             amber: { DEFAULT: '#f5a623', soft: '#ffc76b', deep: '#c47d0e' }
           },
           fontFamily: {
-            display: ['"Bebas Neue"', 'sans-serif'],
+            // Bebas Neue без кириллицы — русские буквы берутся из Oswald
+            display: ['"Bebas Neue"', 'Oswald', 'sans-serif'],
             sans: ['Manrope', 'system-ui', 'sans-serif']
           }
         }
@@ -38,6 +39,16 @@
     html { background: #0a0a0a; }
     body { background: #0a0a0a; color: #fff; -webkit-font-smoothing: antialiased; }
     ::selection { background: #f5a623; color: #0a0a0a; }
+    .font-display { text-transform: uppercase; font-weight: 500; letter-spacing: .01em; }
+    /* У Oswald высокие заглавные — даём строкам воздух (html перебивает leading-* от Tailwind) */
+    @media (max-width: 1023px) {
+      html .font-display { line-height: 1.08; }
+    }
+    /* На компьютере — широкий Arimo (вид Arial, одинаково на всех ОС), на телефоне — узкий Oswald */
+    @media (min-width: 1024px) {
+      /* html — чтобы перебить .font-display, который Tailwind CDN вставляет позже */
+      html .font-display { font-family: "Bebas Neue", "Arimo", sans-serif; font-weight: 400; letter-spacing: 0; }
+    }
 
     /* Плёночное зерно поверх всего сайта */
     .grain::after {
@@ -75,6 +86,36 @@
     .viewfinder::before { top: 24px; left: 24px; border-top: 2px solid; border-left: 2px solid; }
     .viewfinder::after { bottom: 24px; right: 24px; border-bottom: 2px solid; border-right: 2px solid; }
 
+    /* Мобильное меню */
+    #burger { position: relative; }
+    .b-line { position: absolute; left: 50%; width: 22px; height: 1.5px; margin-left: -11px; background: #fff; transition: transform .4s cubic-bezier(.7,0,.3,1); }
+    .b-line:first-child { transform: translateY(-4px); }
+    .b-line:last-child { transform: translateY(4px); }
+    #burger[aria-expanded="true"] .b-line:first-child { transform: rotate(45deg); }
+    #burger[aria-expanded="true"] .b-line:last-child { transform: rotate(-45deg); }
+
+    #mobileMenu {
+      display: grid; grid-template-rows: 0fr; visibility: hidden;
+      transition: grid-template-rows .5s cubic-bezier(.7,0,.3,1), visibility 0s .5s;
+    }
+    #mobileMenu.open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .5s cubic-bezier(.7,0,.3,1); }
+    #mobileMenu > div { overflow: hidden; min-height: 0; }
+    @media (min-width: 768px) { #mobileMenu { display: none; } }
+
+    .m-item {
+      display: flex; align-items: center; gap: 14px; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,.07);
+      font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.85);
+      opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .4s, color .3s;
+    }
+    .m-item:active, .m-item:hover { color: #f5a623; }
+    .m-num { font-size: 10px; color: #f5a623; letter-spacing: .1em; width: 18px; }
+    .m-arrow { margin-left: auto; color: rgba(255,255,255,.25); font-weight: 400; }
+    .m-foot { opacity: 0; transition: opacity .4s; }
+    #mobileMenu.open .m-item, #mobileMenu.open .m-foot { opacity: 1; transform: none; }
+    #mobileMenu.open .m-item:nth-child(1) { transition-delay: .12s } #mobileMenu.open .m-item:nth-child(2) { transition-delay: .17s }
+    #mobileMenu.open .m-item:nth-child(3) { transition-delay: .22s } #mobileMenu.open .m-item:nth-child(4) { transition-delay: .27s }
+    #mobileMenu.open .m-item:nth-child(5) { transition-delay: .32s } #mobileMenu.open .m-foot { transition-delay: .38s }
+
     .rec-dot { animation: blink 1.4s infinite; }
     @keyframes blink { 50% { opacity: .15 } }
 
@@ -110,16 +151,30 @@
         Обсудить проект
       </a>
       <button id="burger" class="md:hidden w-11 h-11 grid place-items-center" aria-label="Меню" aria-expanded="false">
-        <span class="block w-6 h-[2px] bg-white relative before:absolute before:w-6 before:h-[2px] before:bg-white before:-top-2 before:left-0 after:absolute after:w-6 after:h-[2px] after:bg-white after:top-2 after:left-0"></span>
+        <span class="b-line"></span><span class="b-line"></span>
       </button>
     </div>
-    <div id="mobileMenu" class="md:hidden hidden bg-ink/95 backdrop-blur-xl border-t border-line">
-      <div class="px-4 py-6 flex flex-col gap-1 font-display text-4xl tracking-wide">
-        <a href="#works" class="py-2">Работы</a>
-        <a href="#about" class="py-2">Обо мне</a>
-        <a href="#prices" class="py-2">Услуги</a>
-        <a href="#reviews" class="py-2">Отзывы</a>
-        <a href="#contact" class="py-2 text-amber">Контакты</a>
+    <div id="mobileMenu" class="bg-ink/95 backdrop-blur-xl border-t border-line">
+      <div>
+      <nav class="px-4 pt-2">
+        <a href="#works" class="m-item"><span class="m-num">01</span>Работы<span class="m-arrow">→</span></a>
+        <a href="#about" class="m-item"><span class="m-num">02</span>Обо мне<span class="m-arrow">→</span></a>
+        <a href="#prices" class="m-item"><span class="m-num">03</span>Услуги<span class="m-arrow">→</span></a>
+        <a href="#reviews" class="m-item"><span class="m-num">04</span>Отзывы<span class="m-arrow">→</span></a>
+        <a href="#contact" class="m-item"><span class="m-num">05</span>Контакты<span class="m-arrow">→</span></a>
+      </nav>
+      <div class="m-foot px-4 pt-6 pb-7">
+        <a href="https://instagram.com/danila_kuzmenko" target="_blank" rel="noopener"
+           class="block rounded-full bg-amber text-ink text-center py-3.5 text-sm font-bold">Заказать съёмку</a>
+        <div class="mt-5 flex items-center justify-between text-[11px] tracking-[.2em] text-white/45 font-semibold">
+          <span>МОСКВА · ВСЯ РОССИЯ</span>
+          <span class="flex gap-4">
+            <a href="https://t.me/kuzmenkovideo9" target="_blank" rel="noopener" class="hover:text-white">TG</a>
+            <a href="https://wa.me/79032214468" target="_blank" rel="noopener" class="hover:text-white">WA</a>
+            <a href="https://instagram.com/danila_kuzmenko" target="_blank" rel="noopener" class="hover:text-white">IG</a>
+          </span>
+        </div>
+      </div>
       </div>
     </div>
   </header>
@@ -135,7 +190,7 @@
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(10,10,10,.8)_100%)]"></div>
 
     <!-- Интерфейс камеры -->
-    <div class="absolute top-24 left-4 sm:left-10 flex items-center gap-2 text-[11px] tracking-[.25em] text-white/70 font-semibold fade-up" style="animation-delay:1.4s">
+    <div class="absolute top-24 left-4 sm:left-10 hidden [@media(min-height:740px)]:flex sm:flex items-center gap-2 text-[11px] tracking-[.25em] text-white/70 font-semibold fade-up" style="animation-delay:1.4s">
       <span class="rec-dot w-2 h-2 rounded-full bg-red-500"></span> REC
       <span id="timecode" class="ml-3 tabular-nums">00:00:00:00</span>
     </div>
@@ -143,9 +198,9 @@
       4K · 25 FPS · MOSCOW
     </div>
 
-    <div class="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col justify-end pb-24 sm:pb-28">
+    <div class="relative z-10 h-full max-w-7xl lg:max-w-none mx-auto px-4 sm:px-6 lg:px-10 flex flex-col justify-end pt-36 pb-24 sm:pb-28">
       <p class="fade-up text-amber text-xs sm:text-sm tracking-[.4em] font-bold mb-5" style="animation-delay:.2s">ВИДЕОГРАФ | МОСКВА</p>
-      <h1 class="font-display leading-[.85] text-[19vw] sm:text-[15vw] lg:text-[11.5rem] tracking-tight">
+      <h1 class="font-display leading-[.9] text-[15vw] sm:text-[13vw] lg:text-[min(13.5vw,27vh)] lg:leading-[.88] tracking-tight">
         <span class="split block overflow-hidden"><span style="animation-delay:.3s">ДАНИЛА</span></span>
         <span class="split block overflow-hidden"><span style="animation-delay:.45s">КУЗЬМЕНКО<span class="text-amber">.</span></span></span>
       </h1>
@@ -351,7 +406,7 @@
           </div>
         </div>
 
-        <div class="reveal mt-10 grid grid-cols-3 gap-4 border-t border-line pt-8" data-delay="3">
+        <div class="reveal mt-10 grid grid-cols-3 gap-4 border-t border-line pt-8 text-center" data-delay="3">
           <div><p class="font-display text-4xl sm:text-5xl"><span data-count="7">0</span>+</p><p class="text-white/50 text-xs sm:text-sm mt-1">звёзд в кадре</p></div>
           <div><p class="font-display text-4xl sm:text-5xl"><span data-count="6">0</span></p><p class="text-white/50 text-xs sm:text-sm mt-1">направлений съёмки</p></div>
           <div><p class="font-display text-4xl sm:text-5xl">4K</p><p class="text-white/50 text-xs sm:text-sm mt-1">качество</p></div>
@@ -582,12 +637,13 @@
 
     // Мобильное меню
     const burger = document.getElementById('burger'), menu = document.getElementById('mobileMenu');
-    burger.addEventListener('click', () => {
-      const open = menu.classList.toggle('hidden') === false;
+    const setMenu = open => {
+      menu.classList.toggle('open', open);
       burger.setAttribute('aria-expanded', open);
       nav.classList.toggle('bg-ink/95', open);
-    });
-    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.add('hidden')));
+    };
+    burger.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
+    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
 
     // Таймкод в hero
     const tc = document.getElementById('timecode'), t0 = performance.now();
